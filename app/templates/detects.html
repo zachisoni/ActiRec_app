@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{%block content %}
+<h1 class="font-bold text-3xl px-4 md:px-16 py-4 w-full md:w-fit text-center md:text-left">
+    {% block header %}{% endblock %} <hr>
+</h1>
+<main class="m-0 px-2 md:px-6 py-2 flex flex-col md:flex-row justify-center items-center md:items-start w-full">
+    <div class="md:w-1/4">
+        {% block form %}
+        {% endblock %}
+        <h2 class="mt-4 font-semibold text-lg">Keterangan Warna Aksi</h2>
+
+        <div class="mt-2 text-start grid grid-cols-3 md:flex md:flex-col">
+            <p class="flex flex-row justify-start items-start">
+                <span class="bg-berdiri w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                Berdiri
+            </p>
+            <p class="flex flex-row justify-start items-start ">
+                <span class="bg-berjalan w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                Berjalan
+            </p>
+            <p class="flex flex-row justify-start items-start">
+                <span class="bg-berkelahi w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                Berkelahi
+            </p>
+            <p class="flex flex-row justify-start items-start ">
+                <span class="bg-berlari w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                Berlari
+            </p>
+            <p class="flex flex-row justify-start items-start">
+                <span class="bg-duduk w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                Duduk
+            </p>
+            <p class="flex flex-row justify-start items-start ">
+                <span class="bg-mencuri w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                Mencuri
+            </p>
+        </div>
+
+    </div>
+    {% block result %}
+    {% endblock %}
+    <div class="mx-4 md:me-0 md:w-1/4 mb-10" id="class-div">
+        <h3 class="font-medium text-lg">Aksi Terdeteksi</h3>
+        {% if original_image and detected_image %}
+        <div id="class-list">
+            {% if classes|count == 0 %}
+            <p class="italic font-semibold text-gray-500">Tidak ada aksi terdeteksi.</p>
+            <p class="italic text-gray-500" id="classes-used">
+            Pilih gambar yang memiliki subjek dan aksi yang dapat dideteksi
+            </p>
+            {%endif %}
+            {% for class_name in classes %}
+            <p class="flex flex-row justify-start items-start" id="classes-used">
+                <span class="bg-{{class_name}} w-[22px] h-[22px] mx-2 border-black border-2"></span>
+                {{ class_name.capitalize() }}
+            </p>
+            {%  endfor %}
+        </div>
+        {% else %}
+        <p class="italic text-gray-500" id="classes" >
+            Pilih {{ page_title }}, lalu tekan tombol "Deteksi Aktivitas" untuk melihat hasil deteksi.
+        </p>
+        {% endif %}
+
+    </div>
+</main>
+
+{% block scripts %}
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - ActiRec</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/output.css')}}">
+</head>
+<body>
+    <div class="bg-[#F2F2F2] px-[20px] py-[10px] flex md:flex-row justify-around items-center flex-col sticky top-0 z-50">
+        <h1 class="text-main text-3xl font-bold">
+            Acti Rec
+        </h1>
+
+        <nav class="flex flex-row px-[10px] font-semibold">
+            <ul class="flex flex-row items-center w-full space-x-1.5">
+                <li>
+                    <a href="{{ url_for('home') }}" 
+                        class=' {% if request.endpoint == "home" %} text-white bg-main 
+                        {% else %} text-main hover:text-[#A65D00] bg-white {% endif %} 
+                        px-4 py-2 rounded flex flex-row justify-center items-center' >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 pr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                        </svg>
+                        <p class="hidden md:inline">Beranda</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('detect_image') }}" 
+                        class='{% if request.endpoint == "detect_image" %} text-white bg-main 
+                        {% else %} text-main hover:text-[#A65D00] bg-white {% endif %} 
+                        px-4 py-2 rounded flex flex-row justify-center items-center'>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 pr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                        <p class="hidden md:inline">Gambar</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('detect_realtime') }}" 
+                        class='{% if request.endpoint == "detect_realtime" %} text-white bg-main 
+                        {% else %} text-main hover:text-[#A65D00] bg-white {% endif %} 
+                        px-4 py-2 rounded flex flex-row justify-center items-center'>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 pr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                        <p class="hidden md:inline">Realtime</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('detect_video') }}" 
+                        class='{% if request.endpoint == "detect_video" %} text-white bg-main 
+                        {% else %} text-main hover:text-[#A65D00] bg-white {% endif %} 
+                        px-4 py-2 rounded flex flex-row justify-center items-center'>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 pr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                        </svg>
+                        <p class="hidden md:inline">Video</p>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% block content %}
+    {% endblock %}
+    <footer class="bg-main px-4 py-6 text-white font-semibold">
+        <div class="flex flex-col items-center">
+            <p>&copy; 2025 ActiRec. All rights reserved.</p>
+            <p>Developed by Asad</p>
+    </footer>
+</body>
+</html>

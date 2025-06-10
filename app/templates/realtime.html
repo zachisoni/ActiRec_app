@@ -1,0 +1,77 @@
+{% extends "detects.html" %}
+{% block header %}Deteksi Realtime{% endblock %}
+
+{% block form %}
+<div class="flex flex-col justify-center items-start md:mx-4">
+    <label for="camera-select">Pilih Kamera:</label>
+    <select id="camera-select" class="mb-2 border-2 rounded w-full text-center border-gray-500">
+        <!-- Akan diisi dari JS -->
+    </select>
+    <div class="flex flex-row justify-center w-full">
+        <button id="start-btn"onclick="startCamera(event)" class="button px-2 py-1 mx-2 my-1 text-white bg-blue-700 rounded cursor-pointer">Start</button>
+        <button id="stop-btn"onclick="stopCamera(event)" class="button px-2 py-1 mx-2 my-1 text-white bg-red-700 rounded cursor-not-allowed opacity-50">Stop</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block result %}
+<div class="flex justify-center mt-6 w-full md:w-3/7 md:mt-0">
+    <img id="video-stream" 
+        class="border-2 border-blue-500 bg-black rounded-md w-full aspect-square fit-contain"
+        src="{{ url_for('static', filename='asset/realtime_placeholder.svg') }}">
+    </img>
+    <!-- <canvas id="canvas" width="600" height="600" class="absolute translate-y-1"></canvas> -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const classDiv = document.getElementById("class-div")
+let stream = null;
+const startButton =  document.getElementById('start-btn');
+const stopButton = document.getElementById('stop-btn');
+
+function fetchCameraList() {
+    fetch('/list_cameras')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('camera-select');
+            select.innerHTML = '';
+            data.cameras.forEach(cam => {
+                const option = document.createElement('option');
+                option.value = cam.index;
+                option.text = cam.name;
+                select.appendChild(option);
+            });
+        });
+}
+
+function startCamera() {
+    const index = document.getElementById('camera-select').value;
+    document.getElementById('video-stream').src = `/video_feed/${index}`;
+    startButton.classList.add('opacity-50', 'cursor-not-allowed');
+    startButton.classList.remove('cursor-pointer');
+    startButton.disabled = true;
+    stopButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    stopButton.classList.add('cursor-pointer');
+    stopButton.disabled = false;
+    
+}
+
+function stopCamera() {
+    document.getElementById('video-stream').src = "{{ url_for('static', filename='asset/realtime_placeholder.svg') }}";
+    fetch('/stop_camera');
+    stopButton.classList.add('opacity-50', 'cursor-not-allowed');
+    stopButton.classList.remove('cursor-cursor');
+    stopButton.disabled = true;
+    startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    startButton.classList.add('cursor-pointer');
+    startButton.disabled = false;
+}
+
+window.onload = () => {
+    classDiv.classList.add('hidden')
+    fetchCameraList();
+}
+</script>
+{% endblock %}

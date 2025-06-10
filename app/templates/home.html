@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{%block content %}
+<main class="m-0 px-2 py-2 flex flex-col items-center justify-center">
+    <div class="flex flex-col justify-between my-6 w-5/6 md:w-4/5">
+        <h1 class="font-bold text-3xl text-main">ActiRec</h1>
+        <div class="flex flex-col md:flex-row justify-start">
+            <img src="{{ url_for('static', filename='asset/Home_Hero.jpg') }}" alt="" 
+                class="h-42 py-2 md:pe-4">
+            <p>
+                ActiRect adalah sistem web pengenalan aktivitas manusia. 
+                Dengan teknologi AI dan machine learning, sistem dapat mengenali aktivitas manusia. 
+                Acti Rect dapat mendeteksi dari berbagai input, yaitu gambar, video, dan bahkan input realtime kamera. 
+                Ini dimungkinkan dengan penggunaan SSD Mobilenet v2 dengan FPNLite yang ringan ke dalam sistem. 
+            </p>
+        </div>
+    </div>
+    <div class="flex flex-col md:flex-row justify-around w-4/5 md:w-full px-3">
+        <div class="flex flex-col my-6 items-start md:items-center md:w-76">
+            <h2 class="font-bold text-xl">Deteksi Realtime</h2>
+            <img src="{{ url_for('static', filename='asset/home_realtime.png') }}" alt="" 
+                class="w-64 py-2 border-1 ">
+            <p>
+                ActiRect dapat mendeteksi aktivitas secara realtime melalui kamera.
+                Dengan menggunakan model SSD Mobilenet v2, sistem dapat mengenali aktivitas manusia secara cepat.
+            </p>
+        </div>
+        <div class="flex flex-col items-end md:items-center my-6 md:w-76">
+            <h2 class="font-bold text-xl">Deteksi Gambar</h2>
+            <img src="{{ url_for('static', filename='asset/home_image.jpeg') }}" alt="" 
+                class="w-64 py-2 md:pe-4">
+            <p>
+                ActiRect juga dapat mendeteksi aktivitas melalui gambar yang diunggah dengan waktu yang sangat singkat.
+                Cukup unggah gambar yang ingin Anda deteksi, dan sistem akan memberikan hasil deteksi aktivitas manusia dalam gambar tersebut.
+            </p>
+        </div>
+        <div class="flex flex-col items-start md:items-center my-6 md:w-76">
+            <h2 class="font-bold text-xl">Deteksi Video</h2>
+            <img src="{{ url_for('static', filename='asset/home_video.png') }}" alt="" 
+                class="w-64 py-2 md:ps-4">
+            <p>
+                Ingin mendeteksi aktivitas dalam video? ActiRec juga dapat melakukannya.
+                Anda hanya perlu mengunggah video yang ingin Anda deteksi, sistem ActiRect akan mendeteksi aksi dalam video tersebut.
+            </p>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

@@ -1,0 +1,23 @@
+node_modules/
+dist/
+coverage/
+HAR model/
+app/__pycache__/
+app/static/output/images/*.png
+app/static/output/images/*.jpg
+app/static/output/images/*.jpeg
+app/static/output/images/*.webp
+app/static/uploads/images/*.png
+app/static/uploads/images/*.jpg
+app/static/uploads/images/*.jpeg
+app/static/uploads/images/*.webp
+
+app/static/output/videos/*.mp4
+app/static/uploads/videos/*.mp4
+
+*.log
+*.env
+*.tsbuildinfo
+*.tgz
+*.zip
+*.tar.gz

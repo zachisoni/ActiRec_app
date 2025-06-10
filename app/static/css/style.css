@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+    --color-main: #DF8405;
+    --color-berdiri: #6464ff;
+    --color-berjalan: #00ff00;
+    --color-berkelahi: #ff00ff;
+    --color-berlari: #ffff00;
+    --color-duduk: #00ffff;
+    --color-mencuri: #ff0000;
+}

@@ -1,0 +1,70 @@
+{% extends 'detects.html' %}
+{% block header %}Deteksi Video {% endblock %}
+
+{% block form %}
+<form method="POST" enctype="multipart/form-data" class=" flex flex-col justify-center items-center md:items-start">
+    <label for="file" class="block text-sm font-medium text-gray-700">Pilih Video</label>
+    <input type="file" name="file" accept="video/*" required 
+        class="mb-4 w-full file:bg-gray-400 file:text-white file:border-0
+        file:py-1 file:px-3 file:rounded-full file:mr-4 "
+        onchange="previewVideo(event)" id="video-upload" />
+    <button class="bg-main hover:bg-[#D27A00] text-white py-2 px-4 rounded">
+        Deteksi Aktivitas
+    </button>
+</form>
+
+{% endblock %}
+
+{% block result %}
+<div class="w-full md:w-2/5 mt-4 md:mt-0">
+    <h3 class="text-lg font-semibold text-center" id="preview-label">
+        {% if original_video and detected_video %}
+        Hasil Deteksi:
+        {% else %}
+        Video Asli:
+        {% endif %} 
+    </h3>
+    <video controls id="preview-video"
+        class="mt-2 mb-6 rounded shadow {{ '' if detected_video else 'hidden'}} w-full aspect-square bg-black" 
+        {% if detected_video %}
+        src="{{ url_for('static', filename=detected_video.split('static/')[-1]) }}"
+        {% endif %}
+        >
+    </video>
+    {% if not detected_video %}
+    <img src="{{ url_for('static', filename='asset/video_placeholder.svg') }}" 
+        class="mt-2 mb-6 rounded shadow w-full" 
+        id="preview-original">
+    {% endif %}
+</div>
+{% endblock %}
+    
+{% block scripts %}
+<script>
+function previewVideo(event) {
+    const previewImg = document.getElementById('preview-original');
+    const previewVideo = document.getElementById('preview-video');
+    const label = document.getElementById('preview-label');
+    const classes_used = document.getElementById('classes-used');
+    const class_list = document.getElementById('class-list');
+    const videoSource = document.getElementById('video-source');
+
+    const file = event.target.files[0];
+
+    if (file) {
+        const videoURL = URL.createObjectURL(file);
+        print('file terupload')
+        previewVideo.src = videoURL;
+        label.textContent = 'Video Asli:';
+        if (classes_used){
+            classes_used.innerHTML = 'Pilih Video, lalu tekan tombol "Deteksi Aktivitas" untuk melihat hasil deteksi.';
+        }
+        if (class_list){
+            class_list.innerHTML = "<p class='italic text-gray-500' id='classes' >Pilih Video, lalu tekan tombol 'Deteksi Aktivitas' untuk melihat hasil deteksi.</p>";
+        }
+        previewVideo.classList.remove('hidden');
+        previewImg.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %}
