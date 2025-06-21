@@ -1,4 +1,6 @@
 tensorflow
 flask
-opencv-python
+opencv-python-headless
 numpy
+onvif-zeep
+gunicorn
