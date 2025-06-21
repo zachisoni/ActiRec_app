@@ -1,9 +1,20 @@
+from flask import Flask, render_template, request, Response, jsonify, redirect, url_for
+from werkzeug.utils import secure_filename
+import os
+import uuid
 import cv2
 import tensorflow as tf
 import numpy as np
 import time
+from onvif import ONVIFCamera
+# from . import detections
 
-detect_fn = tf.saved_model.load('app/static/HAR_model/saved_model')
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'app/static/uploads'
+app.config['RESULT_FOLDER'] = 'app/static/output'
+cctv_streams = {}
+
+detect_fn = tf.saved_model.load('static/HAR_model/saved_model')
 active_stream = None
 camera_active = False
 
@@ -25,7 +36,129 @@ class_colors = {
     6: (0, 0, 255),    # Red
 }
 
-@tf.function
+@app.route('/')
+def home():
+    return render_template('home.html', page_title='Beranda')
+
+
+@app.route('/image', methods=['GET', 'POST'])
+def detect_image():
+    if request.method == 'GET':
+        return render_template('image.html', page_title='Gambar')
+    file = request.files['file']
+    print("File received:", file)
+    if file:
+        filename = secure_filename(file.filename)
+        uid = str(uuid.uuid4())
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], 'images', uid + '_' + filename)
+        result_path = os.path.join(app.config['RESULT_FOLDER'], 'images', uid + '_detected_' + filename)
+        file.save(upload_path)
+
+        # Deteksi objek
+        classes = detect_image(upload_path, result_path)
+
+        return render_template('image.html', 
+                                original_image=upload_path, 
+                                detected_image=result_path, 
+                                classes=classes,
+                                page_title='Gambar')
+
+@app.route('/video', methods=['GET', 'POST'])
+def detect_video():
+    if request.method == 'GET':
+        return render_template('video.html', page_title='Video')
+    file = request.files['file']
+    if file:
+        filename = secure_filename(file.filename)
+        uid = str(uuid.uuid4())
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], 'videos', uid + '_' + filename)
+        result_path = os.path.join(app.config['RESULT_FOLDER'], 'videos', uid + '_result_' + filename)
+
+        file.save(upload_path)
+
+        classes = detect_video(upload_path, result_path)
+
+        return render_template('video.html',
+                                original_video=upload_path,
+                                detected_video=result_path,
+                                classes=classes,
+                                page_title='Video')
+
+@app.route('/realtime', methods=['GET', 'POST'])
+def detect_realtime():
+    return render_template('realtime.html', page_title='Realtime')
+
+def get_available_cameras(max_index=6):
+    available = []
+    for i in range(max_index):
+        cap = cv2.VideoCapture(i)
+        if cap.read()[0]:
+            available.append({'index': i, 'name': f'Kamera {i}'})
+        cap.release()
+    return available
+
+@app.route('/list_cameras')
+def list_cameras():
+    return jsonify({'cameras': get_available_cameras()})
+
+@app.route('/video_feed/<int:index>/<int:cctv>')
+def video_feed(index, cctv: bool):
+    if cctv:
+        print("CCTV stream requested")
+        uri = cctv_streams.get(index)
+        if not uri:
+            return "Kamera tidak ditemukan", 404
+        return Response(detect_realtime(uri, cctv=True),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        print("Local camera stream requested")
+        return Response(detect_realtime(index, cctv=False),
+                         mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/stop_camera')
+def stop_camera():
+    print('trying to stop camera..')
+    global active_stream, camera_active
+    camera_active = False
+    if active_stream:
+        active_stream.release()
+        active_stream = None
+    print('camera stopped')
+    return "Camera Stopped"
+
+@app.route('/connect_cctv', methods=['POST'])
+def connect_camera():
+    ip = request.form['ip']
+    port = int(request.form['port'])
+    username = request.form['username']
+    password = request.form['password']
+    
+    uri = get_rtsp_uri(ip, port, username, password)
+    if uri:
+        index = len(cctv_streams)
+        cctv_streams[index] = uri
+        return redirect(url_for('video_feed', index=index, cctv=True))
+    else:
+        return "Gagal terhubung ke kamera", 400
+
+def get_rtsp_uri(ip, port, username, password):
+    try:
+        cam = ONVIFCamera(ip, port, username, password)
+        media_service = cam.create_media_service()
+        profiles = media_service.GetProfiles()
+        token = profiles[0].token
+        stream_uri = media_service.GetStreamUri({
+            'StreamSetup': {
+                'Stream': 'RTP-Unicast',
+                'Transport': {'Protocol': 'RTSP'}
+            },
+            'ProfileToken': token
+        })
+        return stream_uri.Uri
+    except Exception as e:
+        print("ONVIF connection failed:", e)
+        return None
+
 def detect_objects(image_np: cv2.typing.MatLike, input_tensor: tf.Tensor, show_action: bool = False):
     detections = detect_fn(input_tensor)
 
@@ -131,14 +264,6 @@ def detect_realtime(uri: str, cctv: bool = False):
         print('releasing cv2 camera')
         cap.release()
         print('camera stopped')
-
-def stop_camera():
-    print('trying to stop camera..')
-    global active_stream, camera_active
-    camera_active = False
-    if active_stream:
-        active_stream.release()
-        active_stream = None
 
 def resize_with_padding(image: np.ndarray, color=(0, 0, 0)):
     h, w = image.shape[:2]

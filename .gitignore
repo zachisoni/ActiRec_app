@@ -3,6 +3,10 @@ dist/
 coverage/
 HAR model/
 app/__pycache__/
+env/
+
+__pycache__/
+
 app/static/output/images/*.png
 app/static/output/images/*.jpg
 app/static/output/images/*.jpeg
