@@ -1,6 +1,7 @@
 import cv2
 import tensorflow as tf
 import numpy as np
+import time
 
 detect_fn = tf.saved_model.load('app/static/HAR_model/saved_model')
 active_stream = None
@@ -24,6 +25,7 @@ class_colors = {
     6: (0, 0, 255),    # Red
 }
 
+@tf.function
 def detect_objects(image_np: cv2.typing.MatLike, input_tensor: tf.Tensor, show_action: bool = False):
     detections = detect_fn(input_tensor)
 
@@ -32,7 +34,6 @@ def detect_objects(image_np: cv2.typing.MatLike, input_tensor: tf.Tensor, show_a
     classes = detections['detection_classes'][0].numpy().astype(np.int32)
     scores = detections['detection_scores'][0].numpy()
 
-    image_np = cv2.resize(image_np, (500, 500))
     class_list = set()
     for i in range(len(scores)):
         if scores[i] >= 0.5:
@@ -49,8 +50,6 @@ def detect_objects(image_np: cv2.typing.MatLike, input_tensor: tf.Tensor, show_a
                 cv2.putText(image_np, class_names[classes[i]], (p1[0], p1[1] - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, class_colors[classes[i]], 1)
     return image_np, class_list
-
-
 
 def detect_image(image_path: str, result_path: str):
     image_np = cv2.imread(image_path)
@@ -99,13 +98,18 @@ def detect_video(video_path: str, result_path: str):
     print("kelas yang terdeteksi:",classes)
     return classes
 
-def detect_realtime(index):
-    cap = cv2.VideoCapture(int(index))
+def detect_realtime(uri: str, cctv: bool = False):
+    target_fps = 20
+    delay = 1.0 / target_fps
+    if not cctv:
+        uri = int(uri)
+    cap = cv2.VideoCapture(uri)
     global active_stream, camera_active
     active_stream = cap
     camera_active = True
     try:
         while camera_active:
+            start_time = time.time()
             success, frame = cap.read()
             if not success:
                 break
@@ -119,6 +123,10 @@ def detect_realtime(index):
             _, buffer = cv2.imencode('.jpg', image_np)
             frame = buffer.tobytes()
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+            elapsed_time = time.time() - start_time
+            if elapsed_time < delay:
+                time.sleep(delay - elapsed_time)
     finally:
         print('releasing cv2 camera')
         cap.release()
@@ -141,7 +149,7 @@ def resize_with_padding(image: np.ndarray, color=(0, 0, 0)):
     new_h = int(h * scale)
 
     # Resize gambar ke ukuran baru
-    resized_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    resized_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
 
     # Buat canvas hitam dengan ukuran target
     padded_image = np.full((500, 500, 3), color, dtype=np.uint8)

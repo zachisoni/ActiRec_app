@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request, Response, jsonify
+from flask import Flask, render_template, request, Response, jsonify, redirect, url_for
 from werkzeug.utils import secure_filename
 import os
 import uuid
 import cv2
+from onvif import ONVIFCamera
 from . import detections
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'app/static/uploads'
 app.config['RESULT_FOLDER'] = 'app/static/output'
+cctv_streams = {}
 
 @app.route('/')
 def home():
@@ -61,8 +63,6 @@ def detect_video():
 def detect_realtime():
     return render_template('realtime.html', page_title='Realtime')
 
-cameras = {}
-
 def get_available_cameras(max_index=6):
     available = []
     for i in range(max_index):
@@ -76,12 +76,54 @@ def get_available_cameras(max_index=6):
 def list_cameras():
     return jsonify({'cameras': get_available_cameras()})
 
-@app.route('/video_feed/<int:index>')
-def video_feed(index):
-    return Response(detections.detect_realtime(index),
+@app.route('/video_feed/<int:index>/<int:cctv>')
+def video_feed(index, cctv: bool):
+    if cctv:
+        print("CCTV stream requested")
+        uri = cctv_streams.get(index)
+        if not uri:
+            return "Kamera tidak ditemukan", 404
+        return Response(detections.detect_realtime(uri, cctv=True),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        print("Local camera stream requested")
+        return Response(detections.detect_realtime(index, cctv=False),
+                         mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/stop_camera')
 def stop_camera():
     detections.stop_camera()
     return "Camera Stopped"
+
+@app.route('/connect_cctv', methods=['POST'])
+def connect_camera():
+    ip = request.form['ip']
+    port = int(request.form['port'])
+    username = request.form['username']
+    password = request.form['password']
+    
+    uri = get_rtsp_uri(ip, port, username, password)
+    if uri:
+        index = len(cctv_streams)
+        cctv_streams[index] = uri
+        return redirect(url_for('video_feed', index=index, cctv=True))
+    else:
+        return "Gagal terhubung ke kamera", 400
+
+def get_rtsp_uri(ip, port, username, password):
+    try:
+        cam = ONVIFCamera(ip, port, username, password)
+        media_service = cam.create_media_service()
+        profiles = media_service.GetProfiles()
+        token = profiles[0].token
+        stream_uri = media_service.GetStreamUri({
+            'StreamSetup': {
+                'Stream': 'RTP-Unicast',
+                'Transport': {'Protocol': 'RTSP'}
+            },
+            'ProfileToken': token
+        })
+        return stream_uri.Uri
+    except Exception as e:
+        print("ONVIF connection failed:", e)
+        return None
